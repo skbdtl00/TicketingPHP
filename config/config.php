@@ -10,5 +10,6 @@ return [
     'max_upload_size' => 10 * 1024 * 1024, // 10MB
     'allowed_extensions' => ['jpg', 'jpeg', 'png', 'pdf', 'zip'],
     'oauth_url' => 'https://tozei.com/oauth/',
-    'oauth_secret' => 'FWV9agSoDqnlFWV9agSoDqnl',
+    'oauth_secret' => getenv('OAUTH_SECRET') ?: 'FWV9agSoDqnlFWV9agSoDqnl',
+    'oauth_email_domain' => getenv('OAUTH_EMAIL_DOMAIN') ?: '@tozei.com',
 ];

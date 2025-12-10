@@ -106,9 +106,12 @@ function ensure_upload_dir(): void
     }
 }
 
-function validate_oauth_token(string $token): array|false
+function validate_oauth_token(string $token, ?string $secret = null): array|false
 {
-    $config = require __DIR__ . '/../config/config.php';
+    if ($secret === null) {
+        $config = require __DIR__ . '/../config/config.php';
+        $secret = $config['oauth_secret'];
+    }
     
     if (!str_contains($token, '.')) {
         return false;
@@ -117,7 +120,7 @@ function validate_oauth_token(string $token): array|false
     [$payload, $signature] = explode('.', $token, 2);
 
     // Verify signature
-    $expectedSig = hash_hmac('sha256', $payload, $config['oauth_secret']);
+    $expectedSig = hash_hmac('sha256', $payload, $secret);
     if (!hash_equals($expectedSig, $signature)) {
         return false; // signature invalid
     }

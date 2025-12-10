@@ -7,6 +7,7 @@ class Auth
     public static function oauthLogin(array $data): bool
     {
         $pdo = Database::connection();
+        $config = require __DIR__ . '/../config/config.php';
         
         // Check if user exists by oauth_user_id
         $stmt = $pdo->prepare("SELECT * FROM users WHERE oauth_user_id = :oauth_user_id");
@@ -19,13 +20,14 @@ class Auth
                 INSERT INTO users (oauth_user_id, username, name, email, realname, surname, role, theme) 
                 VALUES (:oauth_user_id, :username, :name, :email, :realname, :surname, :role, 'light')
             ");
-            $name = trim(($data['realname'] ?? '') . ' ' . ($data['surname'] ?? ''));
-            $email = $data['username'] . '@tozei.com'; // Generate email from username
+            $fullName = trim(($data['realname'] ?? '') . ' ' . ($data['surname'] ?? ''));
+            $name = ($fullName !== '') ? $fullName : $data['username'];
+            $email = $data['username'] . $config['oauth_email_domain'];
             
             $stmt->execute([
                 ':oauth_user_id' => $data['user_id'],
                 ':username' => $data['username'],
-                ':name' => $name ?: $data['username'],
+                ':name' => $name,
                 ':email' => $email,
                 ':realname' => $data['realname'] ?? '',
                 ':surname' => $data['surname'] ?? '',

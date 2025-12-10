@@ -37,10 +37,16 @@ Or use environment variables:
 
 ### 3. Run Database Migration
 
-Execute the migration script to create database tables:
+Option A - Using PHP migration script:
 
 ```bash
 php migrate.php
+```
+
+Option B - Import SQL schema directly:
+
+```bash
+mysql -u root -p < schema.sql
 ```
 
 ### 4. OAuth Configuration

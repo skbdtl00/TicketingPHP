@@ -3,10 +3,13 @@
  * Standalone OAuth Callback Script (for testing purposes)
  * This is a standalone version of the OAuth callback handler
  * The actual OAuth flow is handled in index.php at /oauth/callback
+ * 
+ * IMPORTANT: Set OAUTH_SECRET environment variable before using this script
+ * Example: export OAUTH_SECRET='your_secret_key_here'
  */
 
 session_start();
-define('OAUTH_SECRET', 'FWV9agSoDqnlFWV9agSoDqnl');
+define('OAUTH_SECRET', getenv('OAUTH_SECRET') ?: 'FWV9agSoDqnlFWV9agSoDqnl');
 
 function validateToken(string $token): array|false {
     if (!str_contains($token, '.')) return false;
