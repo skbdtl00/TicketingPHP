@@ -17,26 +17,30 @@ switch (true) {
         render('home');
         break;
 
-    case $path === '/register':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $result = Auth::register(trim($_POST['name']), trim($_POST['email']), $_POST['password']);
-            if ($result === true) {
-                redirect_with_message('/login', 'สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ');
-            }
-            redirect_with_message('/register', $result, 'error');
-        }
-        render('auth_register');
+    case $path === '/login':
+        // Redirect to OAuth provider
+        $config = require __DIR__ . '/config/config.php';
+        $callbackUrl = urlencode($_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/oauth/callback');
+        header('Location: ' . $config['oauth_url'] . '?callback=' . $callbackUrl);
+        exit;
         break;
 
-    case $path === '/login':
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $result = Auth::login(trim($_POST['email']), $_POST['password']);
-            if ($result === true) {
-                redirect_with_message('/', 'เข้าสู่ระบบสำเร็จ');
-            }
-            redirect_with_message('/login', $result, 'error');
+    case $path === '/oauth/callback':
+        // OAuth callback handler
+        if (!isset($_GET['token'])) {
+            redirect_with_message('/', 'Missing token', 'error');
         }
-        render('auth_login');
+
+        $token = $_GET['token'];
+        $data = validate_oauth_token($token);
+
+        if (!$data) {
+            redirect_with_message('/', 'Invalid token', 'error');
+        }
+
+        // Login or create user with OAuth data
+        Auth::oauthLogin($data);
+        redirect_with_message('/', 'เข้าสู่ระบบสำเร็จ');
         break;
 
     case $path === '/logout':

@@ -144,7 +144,6 @@ $safeBasePath = sanitize($basePath);
                     <a href="<?= $safeBasePath ?>/logout">ออกจากระบบ</a>
                 <?php else: ?>
                     <a href="<?= $safeBasePath ?>/login">เข้าสู่ระบบ</a>
-                    <a href="<?= $safeBasePath ?>/register">สมัครสมาชิก</a>
                 <?php endif; ?>
             </div>
         </nav>
