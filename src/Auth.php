@@ -4,34 +4,61 @@ namespace App;
 
 class Auth
 {
-    public static function register(string $name, string $email, string $password): bool|string
+    public static function oauthLogin(array $data): bool
     {
         $pdo = Database::connection();
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        if ($stmt->fetch()) {
-            return 'อีเมลนี้ถูกใช้แล้ว';
-        }
-        $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, role, theme) VALUES (:name, :email, :password_hash, 'user', 'light')");
-        $stmt->execute([
-            ':name' => $name,
-            ':email' => $email,
-            ':password_hash' => $hash,
-        ]);
-        return true;
-    }
-
-    public static function login(string $email, string $password): bool|string
-    {
-        $pdo = Database::connection();
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
+        $config = require __DIR__ . '/../config/config.php';
+        
+        // Check if user exists by oauth_user_id
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE oauth_user_id = :oauth_user_id");
+        $stmt->execute([':oauth_user_id' => $data['user_id']]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+        
+        if (!$user) {
+            // Create new user
+            $stmt = $pdo->prepare("
+                INSERT INTO users (oauth_user_id, username, name, email, realname, surname, role, theme) 
+                VALUES (:oauth_user_id, :username, :name, :email, :realname, :surname, :role, 'light')
+            ");
+            $fullName = trim(($data['realname'] ?? '') . ' ' . ($data['surname'] ?? ''));
+            $name = ($fullName !== '') ? $fullName : $data['username'];
+            $email = $data['username'] . $config['oauth_email_domain'];
+            
+            $stmt->execute([
+                ':oauth_user_id' => $data['user_id'],
+                ':username' => $data['username'],
+                ':name' => $name,
+                ':email' => $email,
+                ':realname' => $data['realname'] ?? '',
+                ':surname' => $data['surname'] ?? '',
+                ':role' => $data['role'] ?? 'user',
+            ]);
+            
+            // Fetch the newly created user
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE oauth_user_id = :oauth_user_id");
+            $stmt->execute([':oauth_user_id' => $data['user_id']]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        } else {
+            // Update existing user with latest OAuth data
+            $stmt = $pdo->prepare("
+                UPDATE users 
+                SET username = :username, realname = :realname, surname = :surname, role = :role
+                WHERE oauth_user_id = :oauth_user_id
+            ");
+            $stmt->execute([
+                ':oauth_user_id' => $data['user_id'],
+                ':username' => $data['username'],
+                ':realname' => $data['realname'] ?? '',
+                ':surname' => $data['surname'] ?? '',
+                ':role' => $data['role'] ?? 'user',
+            ]);
+            
+            // Refresh user data
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE oauth_user_id = :oauth_user_id");
+            $stmt->execute([':oauth_user_id' => $data['user_id']]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
         }
-        unset($user['password_hash']);
+        
         $_SESSION['user'] = $user;
         return true;
     }

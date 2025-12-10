@@ -105,3 +105,32 @@ function ensure_upload_dir(): void
         mkdir($config['upload_dir'], 0755, true);
     }
 }
+
+function validate_oauth_token(string $token, ?string $secret = null): array|false
+{
+    if ($secret === null) {
+        $config = require __DIR__ . '/../config/config.php';
+        $secret = $config['oauth_secret'];
+    }
+    
+    if (!str_contains($token, '.')) {
+        return false;
+    }
+
+    [$payload, $signature] = explode('.', $token, 2);
+
+    // Verify signature
+    $expectedSig = hash_hmac('sha256', $payload, $secret);
+    if (!hash_equals($expectedSig, $signature)) {
+        return false; // signature invalid
+    }
+
+    // Decode JSON data
+    $data = json_decode(base64_decode($payload), true);
+
+    if (!$data) {
+        return false;
+    }
+
+    return $data;
+}

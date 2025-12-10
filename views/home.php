@@ -4,7 +4,7 @@
         <h1>ศูนย์บริการช่วยเหลือ Tozei Ticketing</h1>
         <p class="text-muted">ระบบออกตั๋วซัพพอร์ตภาษาไทย โทนสีฟ้า สำหรับติดตามสถานะ แจ้งปัญหา และสื่อสารกับผู้ดูแล</p>
         <div class="flex mt-3">
-            <a class="btn" href="<?= $user ? '/tickets/new' : '/register' ?>">เริ่มต้น</a>
+            <a class="btn" href="<?= $user ? '/tickets/new' : '/login' ?>">เริ่มต้น</a>
             <a class="btn btn-secondary" href="<?= $user ? '/tickets' : '/login' ?>">ดูตั๋ว</a>
         </div>
         <div class="mt-3 text-muted">รองรับอัปโหลดไฟล์แนบสูงสุด 10MB (JPG/PNG/PDF/ZIP)</div>
