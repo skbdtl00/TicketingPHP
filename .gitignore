@@ -1,0 +1,5 @@
+config/database.sqlite
+uploads/*
+!uploads/.gitkeep
+public/logo.png
+.DS_Store
