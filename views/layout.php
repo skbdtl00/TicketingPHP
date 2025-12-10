@@ -2,6 +2,8 @@
 $config = require __DIR__ . '/../config/config.php';
 $flash = flash();
 $theme = $user['theme'] ?? 'light';
+$base = trim($config['base_url'] ?? '', '/');
+$basePath = $base === '' ? '' : '/' . $base;
 ?>
 <!DOCTYPE html>
 <html lang="th" data-theme="<?= sanitize($theme) ?>">
@@ -126,22 +128,22 @@ $theme = $user['theme'] ?? 'light';
     <header>
         <nav class="container">
             <div class="brand">
-                <img src="/public/logo.png" alt="logo">
+                <img src="<?= $basePath ?>/public/logo.png" alt="logo">
                 <div>Ticketing <span class="badge">Tozei</span></div>
             </div>
             <div class="nav-links">
-                <a href="/">หน้าหลัก</a>
+                <a href="<?= $basePath ?: '/' ?>">หน้าหลัก</a>
                 <?php if ($user): ?>
-                    <a href="/tickets">ตั๋วของฉัน</a>
-                    <a href="/tickets/new">เปิดตั๋ว</a>
+                    <a href="<?= $basePath ?>/tickets">ตั๋วของฉัน</a>
+                    <a href="<?= $basePath ?>/tickets/new">เปิดตั๋ว</a>
                     <?php if ($user['role'] === 'admin'): ?>
-                        <a href="/admin">แดชบอร์ดแอดมิน</a>
+                        <a href="<?= $basePath ?>/admin">แดชบอร์ดแอดมิน</a>
                     <?php endif; ?>
-                    <a href="/profile">โปรไฟล์</a>
-                    <a href="/logout">ออกจากระบบ</a>
+                    <a href="<?= $basePath ?>/profile">โปรไฟล์</a>
+                    <a href="<?= $basePath ?>/logout">ออกจากระบบ</a>
                 <?php else: ?>
-                    <a href="/login">เข้าสู่ระบบ</a>
-                    <a href="/register">สมัครสมาชิก</a>
+                    <a href="<?= $basePath ?>/login">เข้าสู่ระบบ</a>
+                    <a href="<?= $basePath ?>/register">สมัครสมาชิก</a>
                 <?php endif; ?>
             </div>
         </nav>

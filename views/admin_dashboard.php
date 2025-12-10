@@ -53,7 +53,7 @@
         <tbody>
             <?php foreach ($tickets as $t): ?>
                 <tr>
-                    <td><?= $t['id'] ?></td>
+                    <td><?= sanitize((string)$t['id']) ?></td>
                     <td><a href="/tickets/<?= $t['id'] ?>"><?= sanitize($t['title']) ?></a></td>
                     <td><?= sanitize($t['user_email']) ?></td>
                     <td><span class="status status-<?= sanitize($t['status']) ?>"><?= human_status($t['status']) ?></span></td>

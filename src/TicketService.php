@@ -102,6 +102,10 @@ class TicketService
 
     public static function updateStatus(int $ticketId, string $status): void
     {
+        $allowed = ['open', 'in_progress', 'closed'];
+        if (!in_array($status, $allowed, true)) {
+            throw new \InvalidArgumentException('สถานะไม่ถูกต้อง');
+        }
         $pdo = Database::connection();
         $stmt = $pdo->prepare("UPDATE tickets SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
         $stmt->execute([':status' => $status, ':id' => $ticketId]);
@@ -110,8 +114,22 @@ class TicketService
     public static function deleteTicket(int $ticketId): void
     {
         $pdo = Database::connection();
+        $stmt = $pdo->prepare("SELECT attachment_path FROM tickets WHERE id = :id");
+        $stmt->execute([':id' => $ticketId]);
+        $attachment = $stmt->fetchColumn();
+
         $stmt = $pdo->prepare("DELETE FROM tickets WHERE id = :id");
         $stmt->execute([':id' => $ticketId]);
+
+        if ($attachment) {
+            $config = require __DIR__ . '/../config/config.php';
+            $filePath = rtrim($config['upload_dir'], '/') . '/' . basename($attachment);
+            if (is_file($filePath)) {
+                if (!unlink($filePath)) {
+                    throw new \RuntimeException('ลบไฟล์แนบไม่สำเร็จ');
+                }
+            }
+        }
     }
 
     public static function stats(): array
@@ -148,7 +166,7 @@ class TicketService
             'jpeg' => ['image/jpeg'],
             'png' => ['image/png'],
             'pdf' => ['application/pdf'],
-            'zip' => ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'],
+            'zip' => ['application/zip', 'application/x-zip-compressed'],
         ];
         if (!in_array($mime, $allowedMimes[$extension] ?? [], true)) {
             throw new \RuntimeException('Mime type ไม่ถูกต้อง');
@@ -160,6 +178,8 @@ class TicketService
         if (!move_uploaded_file($file['tmp_name'], $destination)) {
             throw new \RuntimeException('อัปโหลดไฟล์ไม่สำเร็จ');
         }
-        return '/uploads/' . $safeName;
+        $base = trim($config['base_url'] ?? '', '/');
+        $prefix = $base === '' ? '' : '/' . $base;
+        return $prefix . '/uploads/' . $safeName;
     }
 }

@@ -102,6 +102,6 @@ function ensure_upload_dir(): void
 {
     $config = require __DIR__ . '/../config/config.php';
     if (!is_dir($config['upload_dir'])) {
-        mkdir($config['upload_dir'], 0777, true);
+        mkdir($config['upload_dir'], 0755, true);
     }
 }

@@ -1,5 +1,5 @@
 config/database.sqlite
 uploads/*
 !uploads/.gitkeep
-public/logo.png
+!uploads/.htaccess
 .DS_Store

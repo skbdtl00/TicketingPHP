@@ -13,7 +13,7 @@
     <p class="mt-2"><?= nl2br(sanitize($ticket['content'])) ?></p>
     <?php if (!empty($ticket['attachment_path'])): ?>
         <div class="mt-2">
-            <strong>ไฟล์แนบ:</strong> <a href="<?= sanitize($ticket['attachment_path']) ?>" target="_blank">ดาวน์โหลด</a>
+            <strong>ไฟล์แนบ:</strong> <a href="<?= $basePath ?>/tickets/<?= $ticket['id'] ?>/attachment">ดาวน์โหลด</a>
         </div>
     <?php endif; ?>
 </div>

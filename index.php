@@ -78,10 +78,38 @@ switch (true) {
         render('ticket_new');
         break;
 
+    case preg_match('~^/tickets/(\\d+)/attachment$~', $path, $m):
+        $ticketId = (int) $m[1];
+        require_login();
+        $ticket = TicketService::findTicket($ticketId);
+        if (!$ticket) {
+            http_response_code(404);
+            exit('ไม่พบตั๋ว');
+        }
+        if ($user['role'] !== 'admin' && $ticket['user_id'] !== $user['id']) {
+            http_response_code(403);
+            exit('ไม่สามารถเข้าถึงไฟล์แนบนี้');
+        }
+        if (empty($ticket['attachment_path'])) {
+            http_response_code(404);
+            exit('ไม่มีไฟล์แนบ');
+        }
+        $config = require __DIR__ . '/config/config.php';
+        $filePath = rtrim($config['upload_dir'], '/') . '/' . basename($ticket['attachment_path']);
+        if (!is_file($filePath)) {
+            http_response_code(404);
+            exit('ไม่พบไฟล์');
+        }
+        $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($filePath));
+        header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
+        readfile($filePath);
+        exit;
+
     case preg_match('~^/tickets/(\\d+)$~', $path, $m):
         $ticketId = (int) $m[1];
         require_login();
-        $user = current_user();
         $ticket = TicketService::findTicket($ticketId);
         if (!$ticket) {
             http_response_code(404);
