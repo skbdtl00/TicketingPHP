@@ -4,6 +4,7 @@ $flash = flash();
 $theme = $user['theme'] ?? 'light';
 $base = trim($config['base_url'] ?? '', '/');
 $basePath = $base === '' ? '' : '/' . $base;
+$safeBasePath = sanitize($basePath);
 ?>
 <!DOCTYPE html>
 <html lang="th" data-theme="<?= sanitize($theme) ?>">
@@ -128,22 +129,22 @@ $basePath = $base === '' ? '' : '/' . $base;
     <header>
         <nav class="container">
             <div class="brand">
-                <img src="<?= $basePath ?>/public/logo.png" alt="logo">
+                <img src="<?= $safeBasePath ?>/public/logo.png" alt="logo">
                 <div>Ticketing <span class="badge">Tozei</span></div>
             </div>
             <div class="nav-links">
-                <a href="<?= $basePath ?: '/' ?>">หน้าหลัก</a>
+                <a href="<?= $safeBasePath ?: '/' ?>">หน้าหลัก</a>
                 <?php if ($user): ?>
-                    <a href="<?= $basePath ?>/tickets">ตั๋วของฉัน</a>
-                    <a href="<?= $basePath ?>/tickets/new">เปิดตั๋ว</a>
+                    <a href="<?= $safeBasePath ?>/tickets">ตั๋วของฉัน</a>
+                    <a href="<?= $safeBasePath ?>/tickets/new">เปิดตั๋ว</a>
                     <?php if ($user['role'] === 'admin'): ?>
-                        <a href="<?= $basePath ?>/admin">แดชบอร์ดแอดมิน</a>
+                        <a href="<?= $safeBasePath ?>/admin">แดชบอร์ดแอดมิน</a>
                     <?php endif; ?>
-                    <a href="<?= $basePath ?>/profile">โปรไฟล์</a>
-                    <a href="<?= $basePath ?>/logout">ออกจากระบบ</a>
+                    <a href="<?= $safeBasePath ?>/profile">โปรไฟล์</a>
+                    <a href="<?= $safeBasePath ?>/logout">ออกจากระบบ</a>
                 <?php else: ?>
-                    <a href="<?= $basePath ?>/login">เข้าสู่ระบบ</a>
-                    <a href="<?= $basePath ?>/register">สมัครสมาชิก</a>
+                    <a href="<?= $safeBasePath ?>/login">เข้าสู่ระบบ</a>
+                    <a href="<?= $safeBasePath ?>/register">สมัครสมาชิก</a>
                 <?php endif; ?>
             </div>
         </nav>

@@ -43,8 +43,9 @@ class TicketService
             $params[':category'] = $category;
         }
         if ($userEmail) {
-            $conditions[] = 'u.email LIKE :email';
-            $params[':email'] = '%' . $userEmail . '%';
+            $escapedEmail = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $userEmail);
+            $conditions[] = "u.email LIKE :email ESCAPE '\\\\'";
+            $params[':email'] = '%' . $escapedEmail . '%';
         }
 
         $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
@@ -123,8 +124,10 @@ class TicketService
 
         if ($attachment) {
             $config = require __DIR__ . '/../config/config.php';
-            $filePath = rtrim($config['upload_dir'], '/') . '/' . basename($attachment);
-            if (is_file($filePath)) {
+            $uploadDir = realpath($config['upload_dir']);
+            $filePath = $uploadDir ? realpath($uploadDir . '/' . basename($attachment)) : false;
+            $safePrefix = $uploadDir ? rtrim($uploadDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : null;
+            if ($safePrefix && $filePath && strncmp($filePath, $safePrefix, strlen($safePrefix)) === 0 && is_file($filePath)) {
                 if (!unlink($filePath)) {
                     throw new \RuntimeException('ลบไฟล์แนบไม่สำเร็จ');
                 }
@@ -151,7 +154,8 @@ class TicketService
         }
         $config = require __DIR__ . '/../config/config.php';
         if ($file['size'] > $config['max_upload_size']) {
-            throw new \RuntimeException('ไฟล์มีขนาดเกินกำหนด 10MB');
+            $maxMb = number_format($config['max_upload_size'] / (1024 * 1024), 0);
+            throw new \RuntimeException("ไฟล์มีขนาดเกินกำหนด {$maxMb}MB");
         }
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, $config['allowed_extensions'], true)) {
@@ -173,7 +177,7 @@ class TicketService
         }
 
         ensure_upload_dir();
-        $safeName = uniqid('file_', true) . '.' . $extension;
+        $safeName = bin2hex(random_bytes(16)) . '.' . $extension;
         $destination = $config['upload_dir'] . '/' . $safeName;
         if (!move_uploaded_file($file['tmp_name'], $destination)) {
             throw new \RuntimeException('อัปโหลดไฟล์ไม่สำเร็จ');

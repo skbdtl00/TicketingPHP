@@ -95,15 +95,19 @@ switch (true) {
             exit('ไม่มีไฟล์แนบ');
         }
         $config = require __DIR__ . '/config/config.php';
-        $filePath = rtrim($config['upload_dir'], '/') . '/' . basename($ticket['attachment_path']);
-        if (!is_file($filePath)) {
+        $uploadDir = realpath($config['upload_dir']);
+        $filePath = $uploadDir ? realpath($uploadDir . '/' . basename($ticket['attachment_path'])) : false;
+        $safePrefix = $uploadDir ? rtrim($uploadDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : null;
+        if (!$safePrefix || !$filePath || strncmp($filePath, $safePrefix, strlen($safePrefix)) !== 0 || !is_file($filePath)) {
             http_response_code(404);
             exit('ไม่พบไฟล์');
         }
         $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+        $downloadName = basename($filePath);
+        $downloadName = str_replace(['"', '\\', "\r", "\n"], '', $downloadName);
         header('Content-Type: ' . $mime);
         header('Content-Length: ' . filesize($filePath));
-        header('Content-Disposition: attachment; filename="' . basename($filePath) . '"');
+        header('Content-Disposition: attachment; filename="' . rawurlencode($downloadName) . '"');
         readfile($filePath);
         exit;
 
